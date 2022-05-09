@@ -36,33 +36,34 @@ class PostPagesTests(TestCase):
         """URL-адрес использует соответствующий шаблон."""
         # Собираем в словарь пары "имя_html_шаблона: reverse(name)"
         templates_page_names = {
-            'posts/index.html': reverse('posts:index'),
-            'posts/group_list.html': reverse(
-                'posts:group_list', kwargs={'slug': self.group.slug}),
-            'posts/profile.html': reverse(
-                'posts:profile', kwargs={'username': self.user.username}),
-            'posts/post_detail.html': reverse(
-                'posts:post_detail', kwargs={'post_id': self.post.pk}),
-            'posts/create_post.html': reverse('posts:post_create'),
-            'posts/create_post.html': reverse(
-                'posts:post_edit', kwargs={'post_id': self.post.pk}),
+            reverse('posts:group_list', kwargs={'slug': self.group.slug}): (
+                'posts/group_list.html'
+            ),
+            reverse('posts:index'): 'posts/index.html',
+            reverse('posts:profile', kwargs={'username': (
+                self.user.username)}): 'posts/profile.html',
+            reverse('posts:post_create'): 'posts/create_post.html',
+            reverse('posts:post_detail', kwargs={'post_id': (
+                self.post.pk)}): 'posts/post_detail.html',
+            reverse('posts:post_edit', kwargs={'post_id': (
+                self.post.pk)}): 'posts/create_post.html',
         }
         # Проверяем, что при обращении к name
         # вызывается соответствующий HTML-шаблон
-        for template, reverse_name in templates_page_names.items():
-            with self.subTest(template=template):
+        for reverse_name, template in templates_page_names.items():
+            with self.subTest(reverse_name=reverse_name):
                 response = self.authorized_client.get(reverse_name)
                 self.assertTemplateUsed(response, template)
 
     def test_posts_show_correct_context(self):
         """Шаблоны posts сформированы с правильным контекстом."""
         namespace_list = {
-            'page_obj': reverse('posts:index'),
-            'page_obj': reverse('posts:group_list', args=[self.group.slug]),
-            'page_obj': reverse('posts:profile', args=[self.user.username]),
-            'post': reverse('posts:post_detail', args=[self.post.pk]),
+            reverse('posts:index'): 'page_obj',
+            reverse('posts:group_list', args=[self.group.slug]): 'page_obj',
+            reverse('posts:profile', args=[self.user.username]): 'page_obj',
+            reverse('posts:post_detail', args=[self.post.pk]): 'post',
         }
-        for context, reverse_name in namespace_list.items():
+        for reverse_name, context in namespace_list.items():
             first_object = self.guest_client.get(reverse_name)
             if context == 'post':
                 first_object = first_object.context[context]
@@ -151,9 +152,11 @@ class PostPaginatorTests(TestCase):
         namespace_list = {
             'posts:index': reverse('posts:index') + "?page=2",
             'posts:group_list': reverse(
-                'posts:group_list', kwargs={'slug': self.group.slug}) + "?page=2",
+                'posts:group_list',
+                kwargs={'slug': self.group.slug}) + "?page=2",
             'posts:profile': reverse(
-                'posts:profile', kwargs={'username': self.user.username}) + "?page=2",
+                'posts:profile',
+                kwargs={'username': self.user.username}) + "?page=2",
         }
         for template, reverse_name in namespace_list.items():
             response = self.guest_client.get(reverse_name)
