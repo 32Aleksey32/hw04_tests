@@ -1,3 +1,4 @@
+from http import HTTPStatus
 from django.contrib.auth import get_user_model
 from django.test import TestCase, Client
 from django import forms
@@ -33,8 +34,7 @@ class PostPagesTests(TestCase):
         self.authorized_client.force_login(self.user)
 
     def test_pages_uses_correct_template(self):
-        """URL-адрес использует соответствующий шаблон."""
-        # Собираем в словарь пары "имя_html_шаблона: reverse(name)"
+        """URL-адрес использует соответствующий шаблон и HTTP статус."""
         templates_page_names = {
             reverse('posts:group_list', kwargs={'slug': self.group.slug}): (
                 'posts/group_list.html'
@@ -48,12 +48,11 @@ class PostPagesTests(TestCase):
             reverse('posts:post_edit', kwargs={'post_id': (
                 self.post.pk)}): 'posts/create_post.html',
         }
-        # Проверяем, что при обращении к name
-        # вызывается соответствующий HTML-шаблон
         for reverse_name, template in templates_page_names.items():
             with self.subTest(reverse_name=reverse_name):
                 response = self.authorized_client.get(reverse_name)
                 self.assertTemplateUsed(response, template)
+                self.assertEqual(response.status_code, HTTPStatus.OK)
 
     def test_posts_show_correct_context(self):
         """Шаблоны posts сформированы с правильным контекстом."""
@@ -143,9 +142,10 @@ class PostPaginatorTests(TestCase):
             'posts:profile': reverse(
                 'posts:profile', kwargs={'username': self.user.username}),
         }
+        count_posts = 10
         for template, reverse_name in namespace_list.items():
             response = self.guest_client.get(reverse_name)
-            self.assertEqual(len(response.context['page_obj']), 10)
+            self.assertEqual(len(response.context['page_obj']), count_posts)
 
     def test_second_page_contains_ten_posts(self):
         """Проверка: количество постов на второй странице равно 3."""
@@ -158,6 +158,7 @@ class PostPaginatorTests(TestCase):
                 'posts:profile',
                 kwargs={'username': self.user.username}) + "?page=2",
         }
+        count_posts = 3
         for template, reverse_name in namespace_list.items():
             response = self.guest_client.get(reverse_name)
-            self.assertEqual(len(response.context['page_obj']), 3)
+            self.assertEqual(len(response.context['page_obj']), count_posts)

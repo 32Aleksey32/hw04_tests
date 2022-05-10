@@ -1,6 +1,5 @@
 import shutil
 import tempfile
-
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.test import Client, TestCase
@@ -40,7 +39,8 @@ class PostFormsTests(TestCase):
         super().tearDownClass()
         shutil.rmtree(TEMP_MEDIA_ROOT, ignore_errors=True)
 
-    def test_post_create(self):
+    def test_authorized_client_post_create(self):
+        """"Создается новая запись в базе данных"""
         posts_count = Post.objects.count()
         form_data = {
             'text': 'Данные из формы',
@@ -56,7 +56,22 @@ class PostFormsTests(TestCase):
             'posts:profile',
             kwargs={'username': self.user.username}))
 
-    def test_post_edit(self):
+    def test_guest_client_post_create(self):
+        """"Неавторизованный клиент не может создавать посты."""
+        form_data = {
+            'text': 'Пост от неавторизованного клиента',
+            'group': self.group.id
+        }
+        self.guest_client.post(
+            reverse('posts:post_create'),
+            data=form_data,
+            follow=True,
+        )
+        self.assertFalse(Post.objects.filter(
+            text='Пост от неавторизованного клиента').exists())
+
+    def test_authorized_post_edit(self):
+        """"Авторизованный клиент может редактировать посты."""
         post_count = Post.objects.count()
         form_data = {
             'text': 'Измененный текст',
@@ -70,3 +85,4 @@ class PostFormsTests(TestCase):
         self.assertEqual(Post.objects.count(), post_count)
         self.assertRedirects(response, reverse(
             'posts:post_detail', kwargs={'post_id': self.post.pk}))
+
