@@ -85,4 +85,3 @@ class PostFormsTests(TestCase):
         self.assertEqual(Post.objects.count(), post_count)
         self.assertRedirects(response, reverse(
             'posts:post_detail', kwargs={'post_id': self.post.pk}))
-

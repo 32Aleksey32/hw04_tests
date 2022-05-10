@@ -1,8 +1,6 @@
 from http import HTTPStatus
 from django.contrib.auth import get_user_model
 from django.test import TestCase, Client
-from django.urls import reverse
-
 from ..models import Post, Group
 
 User = get_user_model()
@@ -75,13 +73,14 @@ class PostURLTests(TestCase):
         """Страница /create/ перенаправляет неавторизованного клиента
         на страницу авторизации."""
         response = self.guest_client.get('/create/')
-        self.assertRedirects(response, f'/auth/login/?next=/create/')
+        self.assertRedirects(response, '/auth/login/?next=/create/')
 
     def test_post_edit_url_redirect_guest(self):
-        """Страница posts/<post_id>/edit/ перенаправляет неавторизованного клиента
-        на страницу авторизации."""
+        """Страница posts/post_id/edit/ перенаправляет
+         неавторизованного клиента на страницу авторизации."""
         response = self.guest_client.get(f'/posts/{self.post.id}/edit/')
-        self.assertRedirects(response, f'/auth/login/?next=/posts/{self.post.id}/edit/')
+        self.assertRedirects(
+            response, f'/auth/login/?next=/posts/{self.post.id}/edit/')
 
     def test_wrong_uri_returns_404(self):
         """Запрос к несуществующей странице вернёт ошибку 404."""
