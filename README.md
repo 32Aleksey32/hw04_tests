@@ -45,8 +45,8 @@ python yatube/manage.py createsuperuser
 ```
 Запускаем проект:
 ```
-python yatube/manage.py runserver localhost:80
+python yatube/manage.py runserver
 ```
-После чего проект будет доступен по адресу http://localhost/
+После чего проект будет доступен по адресу http://127.0.0.1/
 
-Заходим в http://localhost/admin и создаем группы и записи. После чего записи и группы появятся на главной странице.
+Заходим в http://127.0.0.1/admin и создаем группы и записи. После чего записи и группы появятся на главной странице.
